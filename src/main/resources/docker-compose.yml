@@ -1,0 +1,44 @@
+services:
+  mongodb-primary:
+    image: jfrog-mirai.asml.com/mirai-docker/bitnami/mongodb:5.0
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=replicasetkey
+    ports:
+      - "27018:27017"
+
+  mongodb-secondary:
+    image: jfrog-mirai.asml.com/mirai-docker/bitnami/mongodb:5.0
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=replicasetkey
+
+  mongodb-arbiter:
+    image: jfrog-mirai.asml.com/mirai-docker/bitnami/mongodb:5.0
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-arbiter
+      - MONGODB_REPLICA_SET_MODE=arbiter
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=replicasetkey
+
+  ems:
+    image: jfrog-mirai.asml.com/mirai-docker/mirai-ems:1.4.0
+    container_name: ems
+    command:
+      - tibemsd
+    ports:
+      - "7222:7222"
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
